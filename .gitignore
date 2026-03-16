@@ -1,0 +1,9 @@
+venv/
+__pycache__/
+*.pyc
+.env
+quant_rag_agent/db/
+quant_rag_agent/data/
+*.html
+*.pdf
+venv/

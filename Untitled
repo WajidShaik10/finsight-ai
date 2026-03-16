@@ -1,0 +1,9 @@
+# main.py
+
+from quant_rag_agent.modules.ingester import DocumentIngester
+
+# Initialize the ingester
+ingester = DocumentIngester()
+
+# Test with the book we already have!
+ingester.ingest("quant_rag_agent/data/principles_2nd_edition_updated.pdf")
