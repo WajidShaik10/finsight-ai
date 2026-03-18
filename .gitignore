@@ -4,6 +4,4 @@ __pycache__/
 .env
 quant_rag_agent/db/
 quant_rag_agent/data/
-*.html
-*.pdf
 venv/
