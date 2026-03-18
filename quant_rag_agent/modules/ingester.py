@@ -1,5 +1,3 @@
-# quant_rag_agent/modules/ingester.py
-
 import pdfplumber
 import chromadb
 from sentence_transformers import SentenceTransformer

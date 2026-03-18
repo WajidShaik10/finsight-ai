@@ -46,6 +46,12 @@
     .empty-state h2 { font-size: 28px; font-weight: 800; text-align: center; }
     .empty-state h2 span { color: var(--accent); }
     .empty-state p { color: var(--muted); text-align: center; font-size: 14px; max-width: 400px; line-height: 1.6; }
+    .quick-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; max-width: 500px; width: 100%; }
+    .quick-action-btn { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; cursor: pointer; text-align: left; transition: border-color 0.2s; }
+    .quick-action-btn:hover { border-color: var(--accent); }
+    .quick-action-btn .qa-icon { font-size: 20px; margin-bottom: 6px; }
+    .quick-action-btn .qa-title { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+    .quick-action-btn .qa-desc { font-size: 11px; color: var(--muted); font-family: 'Space Mono', monospace; }
     .start-btn { background: var(--accent); color: var(--bg); border: none; border-radius: 10px; padding: 14px 28px; font-family: 'Space Mono', monospace; font-size: 14px; font-weight: 700; cursor: pointer; transition: opacity 0.2s; }
     .start-btn:hover { opacity: 0.85; }
     .chat-header { padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
@@ -78,6 +84,9 @@
     .bubble blockquote { border-left: 3px solid var(--accent); padding-left: 12px; color: var(--muted); margin: 8px 0; }
     .chart-wrapper { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-top: 8px; max-width: 500px; }
     .chart-title { font-size: 11px; font-family: 'Space Mono', monospace; color: var(--muted); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+    .suggested-questions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .suggested-btn { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 6px 12px; font-size: 12px; cursor: pointer; color: var(--text); transition: border-color 0.2s; font-family: 'Syne', sans-serif; }
+    .suggested-btn:hover { border-color: var(--accent); color: var(--accent); }
     .input-area { padding: 16px 24px; border-top: 1px solid var(--border); }
     .input-row { display: flex; gap: 10px; align-items: center; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 8px 8px 8px 16px; transition: border-color 0.2s; }
     .input-row:focus-within { border-color: var(--accent); }
@@ -127,7 +136,29 @@
   <div class="empty-state" id="emptyState">
     <div class="empty-logo">D</div>
     <h2>Doc<span>Mind</span></h2>
-    <p>Upload any document and ask questions in plain English. Each chat has its own document and memory.</p>
+    <p>Your AI-powered financial research assistant. Upload documents or ask about live market data.</p>
+    <div class="quick-actions">
+      <div class="quick-action-btn" onclick="startQuickChat('Stock Analysis', 'What is AAPL stock price today?')">
+        <div class="qa-icon">📈</div>
+        <div class="qa-title">Stock Price</div>
+        <div class="qa-desc">Get live stock prices</div>
+      </div>
+      <div class="quick-action-btn" onclick="startQuickChat('Company Compare', 'Compare Apple and Microsoft financials')">
+        <div class="qa-icon">⚖️</div>
+        <div class="qa-title">Compare Companies</div>
+        <div class="qa-desc">Side by side analysis</div>
+      </div>
+      <div class="quick-action-btn" onclick="startQuickChat('Financial Ratios', 'Calculate P/E ratio with price 150 and EPS 5')">
+        <div class="qa-icon">🔢</div>
+        <div class="qa-title">Financial Ratios</div>
+        <div class="qa-desc">P/E, ROE, margins</div>
+      </div>
+      <div class="quick-action-btn" onclick="showNewChatModal()">
+        <div class="qa-icon">📄</div>
+        <div class="qa-title">Analyze Document</div>
+        <div class="qa-desc">Upload 10-K or report</div>
+      </div>
+    </div>
     <button class="start-btn" onclick="showNewChatModal()">+ Start New Chat</button>
   </div>
 </main>
@@ -166,8 +197,7 @@
       const year = match[1];
       let value = parseFloat(match[2].replace(/,/g, ''));
       const unit = match[3]?.toLowerCase();
-      if (unit === 'billion' || unit === 'b') value = value;
-      else if (unit === 'million' || unit === 'm') value = value / 1000;
+      if (unit === 'million' || unit === 'm') value = value / 1000;
       if (!data.labels.includes(year)) {
         data.labels.push(year);
         data.values.push(value);
@@ -244,14 +274,13 @@
       `;
       content.appendChild(msgDiv);
     });
-    const options = {
+    html2pdf().set({
       margin: 10,
       filename: `DocMind_${chat.name.replace(/\s+/g, '_')}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2 },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
-    html2pdf().set(options).from(content).save();
+    }).from(content).save();
   }
 
   async function loadDocuments() {
@@ -352,6 +381,22 @@
     openChat(data.chat_id);
   }
 
+  async function startQuickChat(name, firstQuestion) {
+    const res = await fetch(`${API}/chats/create`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({name, document: ""})
+    });
+    const data = await res.json();
+    chats[data.chat_id] = {id: data.chat_id, name: data.name, document: ""};
+    renderChatList();
+    openChat(data.chat_id);
+    setTimeout(() => {
+      document.getElementById("chatInput").value = firstQuestion;
+      sendMessage();
+    }, 300);
+  }
+
   function openChat(chatId) {
     currentChatId = chatId;
     const chat = chats[chatId];
@@ -361,7 +406,7 @@
       <div class="chat-header">
         <div class="chat-header-info">
           <h2>${chat.name}</h2>
-          <p>${chat.document || 'No document selected'}</p>
+          <p>${chat.document || 'Live data + document analysis'}</p>
         </div>
         <div class="chat-header-actions">
           <button class="export-btn" onclick="exportPDF()">📄 Export PDF</button>
@@ -375,19 +420,30 @@
         <div class="message agent">
           <div class="avatar">D</div>
           <div class="bubble">
-            👋 Hi! I am <strong>DocMind</strong> — your AI document assistant for <strong>${chat.name}</strong>.
-            ${chat.document ? 'I have <strong>' + chat.document + '</strong> loaded. Ask me anything!' : 'Upload a document using the 📎 button to get started.'}
+            👋 Hi! I am <strong>DocMind</strong> — your AI financial analyst for <strong>${chat.name}</strong>.
+            ${chat.document ? 'I have <strong>' + chat.document + '</strong> loaded.' : 'I can search live market data, analyze documents, compare companies, and calculate financial ratios.'}
+            <div class="suggested-questions">
+              <button class="suggested-btn" onclick="askSuggested('What is AAPL stock price today?')">📈 AAPL price</button>
+              <button class="suggested-btn" onclick="askSuggested('Compare Apple and Microsoft')">⚖️ Compare companies</button>
+              <button class="suggested-btn" onclick="askSuggested('Calculate P/E ratio with price 180 and EPS 6')">🔢 P/E ratio</button>
+              <button class="suggested-btn" onclick="askSuggested('Latest market news today')">📰 Market news</button>
+            </div>
           </div>
         </div>
       </div>
       <div class="input-area">
         <div class="input-row">
-          <input type="text" id="chatInput" placeholder="Ask anything about your document..." onkeydown="if(event.key==='Enter') sendMessage()"/>
+          <input type="text" id="chatInput" placeholder="Ask about stocks, financials, documents..." onkeydown="if(event.key==='Enter') sendMessage()"/>
           <button class="send-btn" id="sendBtn" onclick="sendMessage()">SEND</button>
         </div>
-        <div class="input-hint">Press Enter to send • 📎 to upload a new document</div>
+        <div class="input-hint">Press Enter to send • 📎 to upload a document</div>
       </div>
     `;
+  }
+
+  function askSuggested(question) {
+    document.getElementById("chatInput").value = question;
+    sendMessage();
   }
 
   let lastQuestion = "";
@@ -441,7 +497,7 @@
     const id = "thinking-" + Date.now();
     div.id = id;
     div.className = "message agent";
-    div.innerHTML = `<div class="avatar">D</div><div class="bubble thinking">⏳ Searching documents...</div>`;
+    div.innerHTML = `<div class="avatar">D</div><div class="bubble thinking">⏳ Analyzing...</div>`;
     container.appendChild(div);
     container.scrollTop = container.scrollHeight;
     return id;
@@ -459,10 +515,7 @@
     const formData = new FormData();
     formData.append("file", file);
     try {
-      const res = await fetch(`${API}/chats/${currentChatId}/upload`, {
-        method: "POST",
-        body: formData
-      });
+      const res = await fetch(`${API}/chats/${currentChatId}/upload`, {method: "POST", body: formData});
       const data = await res.json();
       addMessage("agent", data.message ? `✅ ${data.message}` : `❌ ${data.error}`);
       if (data.filename && currentChatId) {
