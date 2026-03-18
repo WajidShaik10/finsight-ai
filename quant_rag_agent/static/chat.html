@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>DocMind</title>
+  <title>FinSight AI</title>
   <link rel="icon" type="image/svg+xml" href="/static/favicon.svg"/>
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -124,7 +124,7 @@
 <aside class="sidebar">
   <div class="sidebar-header">
     <div class="sidebar-logo">
-      <div class="logo-icon">D</div>
+      <div class="logo-icon">F</div>
       <h1>Doc<span>Mind</span></h1>
     </div>
     <button class="new-chat-btn" onclick="showNewChatModal()">+ New Chat</button>
@@ -134,7 +134,7 @@
 
 <main class="main" id="main">
   <div class="empty-state" id="emptyState">
-    <div class="empty-logo">D</div>
+    <div class="empty-logo">F</div>
     <h2>Doc<span>Mind</span></h2>
     <p>Your AI-powered financial research assistant. Upload documents or ask about live market data.</p>
     <div class="quick-actions">
@@ -258,7 +258,7 @@
     const content = document.createElement("div");
     content.style.cssText = "font-family: Arial, sans-serif; padding: 20px; color: #000; background: #fff;";
     content.innerHTML = `
-      <h1 style="color:#000; margin-bottom:4px;">DocMind — ${chat.name}</h1>
+      <h1 style="color:#000; margin-bottom:4px;">FinSight AI — ${chat.name}</h1>
       <p style="color:#666; font-size:12px; margin-bottom:20px;">Document: ${chat.document || 'None'} | Exported: ${new Date().toLocaleDateString()}</p>
       <hr style="margin-bottom:20px;"/>
     `;
@@ -269,14 +269,14 @@
       const msgDiv = document.createElement("div");
       msgDiv.style.cssText = `margin-bottom:16px; padding:12px 16px; border-radius:8px; background:${isUser ? '#e8f4fd' : '#f5f5f5'}; border-left:3px solid ${isUser ? '#0088ff' : '#00aa55'};`;
       msgDiv.innerHTML = `
-        <div style="font-size:11px; color:#666; margin-bottom:6px; font-weight:bold;">${isUser ? '👤 You' : '🤖 DocMind'}</div>
+        <div style="font-size:11px; color:#666; margin-bottom:6px; font-weight:bold;">${isUser ? '👤 You' : '🤖 FinSight AI'}</div>
         <div style="font-size:13px; line-height:1.6;">${bubble.innerText}</div>
       `;
       content.appendChild(msgDiv);
     });
     html2pdf().set({
       margin: 10,
-      filename: `DocMind_${chat.name.replace(/\s+/g, '_')}.pdf`,
+      filename: `FinSight AI_${chat.name.replace(/\s+/g, '_')}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2 },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
@@ -418,9 +418,9 @@
       </div>
       <div class="messages" id="messages">
         <div class="message agent">
-          <div class="avatar">D</div>
+          <div class="avatar">F</div>
           <div class="bubble">
-            👋 Hi! I am <strong>DocMind</strong> — your AI financial analyst for <strong>${chat.name}</strong>.
+            👋 Hi! I am <strong>FinSight AI</strong> — your AI financial analyst for <strong>${chat.name}</strong>.
             ${chat.document ? 'I have <strong>' + chat.document + '</strong> loaded.' : 'I can search live market data, analyze documents, compare companies, and calculate financial ratios.'}
             <div class="suggested-questions">
               <button class="suggested-btn" onclick="askSuggested('What is AAPL stock price today?')">📈 AAPL price</button>
@@ -497,7 +497,7 @@
     const id = "thinking-" + Date.now();
     div.id = id;
     div.className = "message agent";
-    div.innerHTML = `<div class="avatar">D</div><div class="bubble thinking">⏳ Analyzing...</div>`;
+    div.innerHTML = `<div class="avatar">F</div><div class="bubble thinking">⏳ Analyzing...</div>`;
     container.appendChild(div);
     container.scrollTop = container.scrollHeight;
     return id;
