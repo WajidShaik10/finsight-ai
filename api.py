@@ -16,7 +16,15 @@ from quant_rag_agent.modules.ingester import DocumentIngester
 load_dotenv()
 
 app = FastAPI()
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app.mount("/static", StaticFiles(directory="quant_rag_agent/static"), name="static")
 
 chats = {}
