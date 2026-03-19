@@ -3,11 +3,11 @@
 import os
 import shutil
 import uuid
-import json
 from datetime import datetime
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from quant_rag_agent.modules.agent import QuantAgent
@@ -17,14 +17,24 @@ load_dotenv()
 
 app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+app.mount("/static", StaticFiles(directory="quant_rag_agent/static"), name="static")
 
-# ─────────────────────────────────────────
-# Persistence
-# ─────────────────────────────────────────
+chats = {}
+
+class ChatRequest(BaseModel):
+    question: str
+
+class CreateChatRequest(BaseModel):
+    name: str
+    document: str = ""
+
+class ChatMessageRequest(BaseModel):
+    chat_id: str
+    question: str
+
 CHATS_FILE = "quant_rag_agent/data/chats.json"
 
 def save_chats():
-    """Save chat metadata to disk."""
     data = {
         chat_id: {
             "id": v["id"],
@@ -37,13 +47,14 @@ def save_chats():
         for chat_id, v in chats.items()
     }
     with open(CHATS_FILE, "w") as f:
+        import json
         json.dump(data, f, indent=2)
 
 def load_chats():
-    """Load chats from disk on startup."""
     if not os.path.exists(CHATS_FILE):
         return {}
     try:
+        import json
         with open(CHATS_FILE, "r") as f:
             data = json.load(f)
         loaded = {}
@@ -67,27 +78,9 @@ def load_chats():
         print(f"Error loading chats: {e}")
         return {}
 
-# Load chats on startup
 chats = load_chats()
 ingester = DocumentIngester()
 
-# ─────────────────────────────────────────
-# Models
-# ─────────────────────────────────────────
-class ChatRequest(BaseModel):
-    question: str
-
-class CreateChatRequest(BaseModel):
-    name: str
-    document: str = ""
-
-class ChatMessageRequest(BaseModel):
-    chat_id: str
-    question: str
-
-# ─────────────────────────────────────────
-# Pages
-# ─────────────────────────────────────────
 @app.get("/")
 def dashboard():
     return FileResponse("quant_rag_agent/static/chat.html")
@@ -96,9 +89,6 @@ def dashboard():
 def old_dashboard():
     return FileResponse("quant_rag_agent/static/index.html")
 
-# ─────────────────────────────────────────
-# Documents
-# ─────────────────────────────────────────
 @app.get("/documents")
 def list_documents():
     files = [f for f in os.listdir("quant_rag_agent/data")
@@ -115,20 +105,15 @@ async def upload_file(file: UploadFile = File(...)):
     except Exception as e:
         return {"error": str(e)}
 
-# ─────────────────────────────────────────
-# Chats
-# ─────────────────────────────────────────
 @app.post("/chats/create")
 def create_chat(request: CreateChatRequest):
     chat_id = str(uuid.uuid4())
     collection_name = f"chat_{chat_id.replace('-', '_')}"
     chat_ingester = DocumentIngester(collection_name=collection_name)
-
     if request.document:
         file_path = f"quant_rag_agent/data/{request.document}"
         if os.path.exists(file_path):
             chat_ingester.ingest(file_path)
-
     chats[chat_id] = {
         "id": chat_id,
         "name": request.name,
@@ -183,9 +168,6 @@ def delete_chat(chat_id: str):
         save_chats()
     return {"message": "Chat deleted"}
 
-# ─────────────────────────────────────────
-# Legacy
-# ─────────────────────────────────────────
 legacy_agent = QuantAgent()
 
 @app.post("/chat")
