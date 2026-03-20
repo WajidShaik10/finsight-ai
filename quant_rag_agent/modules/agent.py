@@ -106,7 +106,12 @@ class QuantAgent:
 
 **52-Week Range:** ${week_low} — ${week_high}"""
         except Exception as e:
-            return f"Error fetching stock data for {ticker}: {e}"
+            print(f"yfinance failed for {ticker}: {e}, falling back to web search")
+            return self._llm_answer(
+                f"What is the current stock price and key metrics for {ticker}?",
+                self.search_web(f"{ticker} stock price today market cap PE ratio"),
+                "stock market analyst"
+            )
 
     def get_historical_data(self, ticker, period="1y"):
         print(f"\n📊 Getting historical data: {ticker} ({period})")
@@ -114,7 +119,7 @@ class QuantAgent:
             stock = yf.Ticker(ticker)
             hist = stock.history(period=period)
             if hist.empty:
-                return f"No historical data found for {ticker}"
+                return self.search_web(f"{ticker} stock price history {period}")
             prices = hist['Close'].tolist()
             dates = [str(d.date()) for d in hist.index.tolist()]
             step = max(1, len(dates) // 12)
@@ -129,7 +134,7 @@ class QuantAgent:
             result += f"\n**Total Return ({period}):** {total_return:+.2f}%"
             return result
         except Exception as e:
-            return f"Error fetching historical data: {e}"
+            return self.search_web(f"{ticker} stock price history {period}")
 
     def compare_stocks(self, tickers):
         print(f"\n⚖️ Comparing stocks: {tickers}")
@@ -165,7 +170,7 @@ class QuantAgent:
             output += "| Beta | " + " | ".join([r['beta'] for r in results]) + " |\n"
             return output
         except Exception as e:
-            return f"Error comparing stocks: {e}"
+            return self.search_web(f"compare {' vs '.join(tickers)} stock price revenue profit")
 
     def get_financials(self, ticker):
         print(f"\n💰 Getting financials: {ticker}")
@@ -197,7 +202,11 @@ class QuantAgent:
 - Return on Equity (ROE): {fmt_pct(info.get('returnOnEquity', 'N/A'))}
 - Return on Assets (ROA): {fmt_pct(info.get('returnOnAssets', 'N/A'))}"""
         except Exception as e:
-            return f"Error fetching financials for {ticker}: {e}"
+            return self._llm_answer(
+                f"What are the key financial metrics for {ticker}?",
+                self.search_web(f"{ticker} revenue net income profit margin financial results 2024"),
+                "financial analyst"
+            )
 
     # ─────────────────────────────────────────
     # QUANT TOOLS
