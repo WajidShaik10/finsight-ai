@@ -218,7 +218,11 @@ class QuantAgent:
             stock = yf.Ticker(ticker)
             hist = stock.history(period=period)
             if hist.empty:
-                return f"No data found for {ticker}"
+                return self._llm_answer(
+                    f"What is the Sharpe ratio and risk metrics for {ticker}?",
+                    self.search_web(f"{ticker} Sharpe ratio volatility risk return analysis"),
+                    "quantitative analyst"
+                )
             returns = hist['Close'].pct_change().dropna()
             annual_return = returns.mean() * 252
             annual_volatility = returns.std() * np.sqrt(252)
@@ -255,7 +259,11 @@ class QuantAgent:
             stock = yf.Ticker(ticker)
             hist = stock.history(period=period)
             if hist.empty:
-                return f"No data found for {ticker}"
+                return self._llm_answer(
+                    f"How would a {strategy} strategy perform on {ticker}?",
+                    self.search_web(f"{ticker} {strategy} trading strategy backtest performance"),
+                    "quantitative analyst"
+                )
             prices = hist['Close'].copy()
             signals = pd.Series(0, index=prices.index)
             if strategy.upper() == "SMA":
@@ -324,7 +332,11 @@ class QuantAgent:
                 if not hist.empty:
                     data[ticker.strip().upper()] = hist['Close']
             if len(data) < 2:
-                return "Need at least 2 valid tickers for portfolio optimization"
+                return self._llm_answer(
+                    f"How should I optimize a portfolio with {', '.join(tickers)}?",
+                    self.search_web(f"portfolio optimization {' '.join(tickers)} allocation weights"),
+                    "portfolio manager"
+                )
             prices_df = pd.DataFrame(data)
             returns_df = prices_df.pct_change().dropna()
             mean_returns = returns_df.mean() * 252
@@ -376,7 +388,11 @@ class QuantAgent:
             stock = yf.Ticker(ticker)
             hist = stock.history(period="1y")
             if hist.empty:
-                return f"No data found for {ticker}"
+                return self._llm_answer(
+                    f"Predict the stock price for {ticker} in the next {days} days",
+                    self.search_web(f"{ticker} stock price prediction forecast next month analyst target"),
+                    "financial analyst"
+                )
             prices = hist['Close']
             current_price = prices.iloc[-1]
             daily_returns = prices.pct_change().dropna()
