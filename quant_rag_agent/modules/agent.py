@@ -12,11 +12,11 @@ from quant_rag_agent.modules.retriever import DocumentRetriever
 
 class QuantAgent:
     def __init__(self, collection_name="quant_documents"):
-        self.client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+        self.client = Groq(api_key=os.environ.get("GROQ_API_KEY", "").strip())
         self.retriever = DocumentRetriever(collection_name=collection_name)
         self.model = "llama-3.3-70b-versatile"
         self.history = []
-        self.serpapi_key = os.environ.get("SERPAPI_KEY")
+        self.serpapi_key = os.environ.get("SERPAPI_KEY", "").strip()
         print("Agent ready!")
 
     # ─────────────────────────────────────────
